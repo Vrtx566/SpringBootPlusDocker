@@ -478,7 +478,7 @@ function openModal(entity, data = null) {
         <div class="form-group"><label>Description *</label><textarea id="f-desc">${esc(data?.description||'')}</textarea></div>
         <div class="form-group"><label>Location</label><input type="text" id="f-location" value="${esc(data?.location||'')}" placeholder="Evidence location"></div>
         <div class="form-group"><label>Type</label><input type="text" id="f-type" value="${esc(data?.type||'')}" placeholder="e.g. Physical, Digital, Witness"></div>
-        <div class="form-group"><label>Case</label><select id="f-case"><option value="">-- None --</option>${caseOpts}</select></div>`;
+        <div class="form-group"><label>Case</label><select id="f-case"><option value="">-- None --</option>${casesCache.map(c => `<option value="${c.id}" ${data?.caseEntity && data.caseEntity.id === c.id ? 'selected' : ''}>${esc(c.title)}</option>`).join('')}</select></div>`;
     } else if (entity === 'detective') {
         html = `<h3>${data ? 'Edit Detective' : 'New Detective'}</h3>
         <div class="form-group"><label>Name *</label><input type="text" id="f-name" value="${esc(data?.name||'')}" placeholder="Detective name"></div>
