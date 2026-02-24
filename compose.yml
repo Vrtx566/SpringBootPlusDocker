@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: investigation
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - investigation-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    command: start-dev
+    ports:
+      - "8180:8080"
+    depends_on:
+      - postgres
+    networks:
+      - investigation-network
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/investigation
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/investigation
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - keycloak
+    networks:
+      - investigation-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - investigation-network
+
+volumes:
+  postgres_data:
+
+networks:
+  investigation-network:
+    driver: bridge

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Las Cariñosas - Crime Investigation System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+        header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-bottom: 2px solid #e94560; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.5rem; color: #e94560; text-transform: uppercase; letter-spacing: 2px; }
+        header .subtitle { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
+        .auth-section { display: flex; align-items: center; gap: 1rem; }
+        .user-info { color: #aaa; font-size: 0.9rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .btn-primary { background: #e94560; color: white; }
+        .btn-primary:hover { background: #c73652; }
+        .btn-secondary { background: #333; color: #ddd; border: 1px solid #555; }
+        .btn-secondary:hover { background: #444; }
+        .btn-danger { background: #8b0000; color: white; }
+        .btn-danger:hover { background: #a00000; }
+        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        nav { background: #16213e; display: flex; border-bottom: 1px solid #333; overflow-x: auto; }
+        nav button { padding: 1rem 1.5rem; border: none; background: transparent; color: #888; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; white-space: nowrap; border-bottom: 3px solid transparent; }
+        nav button:hover { color: #e0e0e0; background: #1a2a4a; }
+        nav button.active { color: #e94560; border-bottom-color: #e94560; background: #1a2a4a; }
+        main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-header h2 { font-size: 1.3rem; color: #e94560; }
+        table { width: 100%; border-collapse: collapse; background: #16213e; border-radius: 8px; overflow: hidden; }
+        thead { background: #1a2a4a; }
+        th { padding: 0.8rem 1rem; text-align: left; font-size: 0.85rem; text-transform: uppercase; color: #888; letter-spacing: 1px; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #222; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1a2a4a; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-open { background: #1a3a5c; color: #4fc3f7; }
+        .badge-closed { background: #3a1a1a; color: #ef9a9a; }
+        .badge-pending { background: #3a3a1a; color: #fff176; }
+        .badge-cleared { background: #1a3a1a; color: #a5d6a7; }
+        .badge-poi { background: #3a2a1a; color: #ffcc80; }
+        .badge-charged { background: #3a1a1a; color: #ef9a9a; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #16213e; border: 1px solid #333; border-radius: 8px; padding: 2rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal h3 { color: #e94560; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; color: #aaa; font-size: 0.85rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.6rem; background: #0f0f1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #e94560; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+        .login-container { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+        .login-card { background: #16213e; border: 1px solid #333; border-radius: 8px; padding: 2.5rem; width: 100%; max-width: 400px; text-align: center; }
+        .login-card h2 { color: #e94560; margin-bottom: 0.5rem; }
+        .login-card p { color: #888; margin-bottom: 2rem; font-size: 0.9rem; }
+        .login-card .form-group { text-align: left; }
+        .login-card .btn { width: 100%; padding: 0.8rem; font-size: 1rem; margin-top: 1rem; }
+        .alert { padding: 0.8rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-error { background: #3a1a1a; border: 1px solid #8b0000; color: #ef9a9a; }
+        .alert-success { background: #1a3a1a; border: 1px solid #2e7d32; color: #a5d6a7; }
+        .empty-state { text-align: center; padding: 3rem; color: #555; }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .actions-col { display: flex; gap: 0.5rem; }
+        #loginSection { display: none; }
+        #appSection { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>🔍 Las Cariñosas</h1>
+        <div class="subtitle">Crime Investigation System</div>
+    </div>
+    <div class="auth-section">
+        <span class="user-info" id="userInfo"></span>
+        <button class="btn btn-secondary" id="authBtn" onclick="toggleAuth()">Login</button>
+    </div>
+</header>
+
+<div id="loginSection">
+    <main>
+        <div class="login-container">
+            <div class="login-card">
+                <h2>🔒 Secure Access</h2>
+                <p>Please authenticate to access the investigation system</p>
+                <div id="loginAlert"></div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" value="detective">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" value="password">
+                </div>
+                <button class="btn btn-primary" onclick="mockLogin()">Sign In</button>
+                <p style="margin-top:1rem; font-size:0.8rem; color:#666;">
+                    Demo: Use any credentials to access the system.<br>
+                    Keycloak integration active at port 8180.
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="appSection">
+    <nav>
+        <button class="active" onclick="showTab('cases', this)">📁 Cases</button>
+        <button onclick="showTab('victims', this)">👤 Victims</button>
+        <button onclick="showTab('suspects', this)">🎭 Suspects</button>
+        <button onclick="showTab('evidence', this)">🔬 Evidence</button>
+        <button onclick="showTab('detectives', this)">🕵️ Detectives</button>
+    </nav>
+
+    <main>
+        <!-- CASES -->
+        <div id="tab-cases" class="tab-content active">
+            <div class="section-header">
+                <h2>Investigation Cases</h2>
+                <button class="btn btn-primary" onclick="openModal('case')">+ New Case</button>
+            </div>
+            <table id="cases-table">
+                <thead>
+                    <tr><th>ID</th><th>Title</th><th>Description</th><th>Status</th><th>Created</th><th>Detective</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="cases-body"><tr><td colspan="7" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- VICTIMS -->
+        <div id="tab-victims" class="tab-content">
+            <div class="section-header">
+                <h2>Victims</h2>
+                <button class="btn btn-primary" onclick="openModal('victim')">+ New Victim</button>
+            </div>
+            <table id="victims-table">
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Location</th><th>Discovery Description</th><th>Case</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="victims-body"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- SUSPECTS -->
+        <div id="tab-suspects" class="tab-content">
+            <div class="section-header">
+                <h2>Suspects</h2>
+                <button class="btn btn-primary" onclick="openModal('suspect')">+ New Suspect</button>
+            </div>
+            <table id="suspects-table">
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Description</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="suspects-body"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- EVIDENCE -->
+        <div id="tab-evidence" class="tab-content">
+            <div class="section-header">
+                <h2>Evidence</h2>
+                <button class="btn btn-primary" onclick="openModal('evidence')">+ New Evidence</button>
+            </div>
+            <table id="evidence-table">
+                <thead>
+                    <tr><th>ID</th><th>Description</th><th>Location</th><th>Type</th><th>Case</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="evidence-body"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- DETECTIVES -->
+        <div id="tab-detectives" class="tab-content">
+            <div class="section-header">
+                <h2>Detectives</h2>
+                <button class="btn btn-primary" onclick="openModal('detective')">+ New Detective</button>
+            </div>
+            <table id="detectives-table">
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Badge Number</th><th>Specialization</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="detectives-body"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal" id="modal-content">
+        <!-- dynamic content -->
+    </div>
+</div>
+
+<script>
+// State
+let authToken = null;
+let currentUser = null;
+let editingId = null;
+let currentEntity = null;
+let casesCache = [];
+let detectivesCache = [];
+
+// Init
+window.onload = function() {
+    const saved = localStorage.getItem('inv_token');
+    const savedUser = localStorage.getItem('inv_user');
+    if (saved && savedUser) {
+        authToken = saved;
+        currentUser = savedUser;
+        showApp();
+    } else {
+        showLoginPage();
+    }
+};
+
+function showLoginPage() {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('appSection').style.display = 'none';
+    document.getElementById('authBtn').textContent = 'Login';
+    document.getElementById('userInfo').textContent = '';
+}
+
+function showApp() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('appSection').style.display = 'block';
+    document.getElementById('authBtn').textContent = 'Logout';
+    document.getElementById('userInfo').textContent = '👤 ' + currentUser;
+    loadAllData();
+}
+
+function toggleAuth() {
+    if (authToken) {
+        logout();
+    } else {
+        showLoginPage();
+    }
+}
+
+function mockLogin() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) {
+        showLoginAlert('Please enter username and password', 'error');
+        return;
+    }
+    // Mock token for demo
+    authToken = 'mock-token-' + Date.now();
+    currentUser = username;
+    localStorage.setItem('inv_token', authToken);
+    localStorage.setItem('inv_user', currentUser);
+    showApp();
+}
+
+function logout() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('inv_token');
+    localStorage.removeItem('inv_user');
+    showLoginPage();
+}
+
+function showLoginAlert(msg, type) {
+    const el = document.getElementById('loginAlert');
+    el.innerHTML = '<div class="alert alert-' + (type === 'error' ? 'error' : 'success') + '">' + msg + '</div>';
+    setTimeout(() => el.innerHTML = '', 3000);
+}
+
+// Tabs
+function showTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+}
+
+// API
+function apiHeaders() {
+    const h = { 'Content-Type': 'application/json' };
+    if (authToken && !authToken.startsWith('mock-')) {
+        h['Authorization'] = 'Bearer ' + authToken;
+    }
+    return h;
+}
+
+async function apiFetch(url, options = {}) {
+    try {
+        options.headers = { ...apiHeaders(), ...(options.headers || {}) };
+        const res = await fetch(url, options);
+        if (res.status === 204) return null;
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error('API Error ' + res.status + ': ' + text);
+        }
+        return await res.json();
+    } catch (e) {
+        console.error('API Error:', e);
+        throw e;
+    }
+}
+
+function loadAllData() {
+    loadCases();
+    loadVictims();
+    loadSuspects();
+    loadEvidence();
+    loadDetectives();
+}
+
+// CASES
+async function loadCases() {
+    try {
+        const data = await apiFetch('/api/cases');
+        casesCache = data || [];
+        renderCases(casesCache);
+    } catch(e) {
+        document.getElementById('cases-body').innerHTML = '<tr><td colspan="7" class="empty-state">⚠️ Could not load cases. Is the backend running?</td></tr>';
+    }
+}
+
+function renderCases(cases) {
+    const tbody = document.getElementById('cases-body');
+    if (!cases.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon">📁</div>No cases found</td></tr>'; return; }
+    tbody.innerHTML = cases.map(c => `
+        <tr>
+            <td>#${c.id}</td>
+            <td><strong>${esc(c.title)}</strong></td>
+            <td>${esc(c.description || '').substring(0,60)}${c.description && c.description.length > 60 ? '...' : ''}</td>
+            <td><span class="badge badge-${(c.status||'').toLowerCase()}">${c.status||'—'}</span></td>
+            <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</td>
+            <td>${c.detective ? esc(c.detective.name) : '—'}</td>
+            <td class="actions-col">
+                <button class="btn btn-secondary btn-sm" onclick="editCase(${c.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntity('case',${c.id})">Del</button>
+            </td>
+        </tr>`).join('');
+}
+
+// VICTIMS
+async function loadVictims() {
+    try {
+        const data = await apiFetch('/api/victims');
+        renderVictims(data || []);
+    } catch(e) {
+        document.getElementById('victims-body').innerHTML = '<tr><td colspan="6" class="empty-state">⚠️ Could not load victims.</td></tr>';
+    }
+}
+
+function renderVictims(victims) {
+    const tbody = document.getElementById('victims-body');
+    if (!victims.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">👤</div>No victims found</td></tr>'; return; }
+    tbody.innerHTML = victims.map(v => `
+        <tr>
+            <td>#${v.id}</td>
+            <td><strong>${esc(v.name)}</strong></td>
+            <td>${esc(v.location||'—')}</td>
+            <td>${esc(v.discoveryDescription||'').substring(0,60)}${v.discoveryDescription && v.discoveryDescription.length > 60 ? '...' : ''}</td>
+            <td>${v.caseEntity ? '#' + v.caseEntity.id + ' ' + esc(v.caseEntity.title||'') : '—'}</td>
+            <td class="actions-col">
+                <button class="btn btn-secondary btn-sm" onclick="editVictim(${v.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntity('victim',${v.id})">Del</button>
+            </td>
+        </tr>`).join('');
+}
+
+// SUSPECTS
+async function loadSuspects() {
+    try {
+        const data = await apiFetch('/api/suspects');
+        renderSuspects(data || []);
+    } catch(e) {
+        document.getElementById('suspects-body').innerHTML = '<tr><td colspan="5" class="empty-state">⚠️ Could not load suspects.</td></tr>';
+    }
+}
+
+function renderSuspects(suspects) {
+    const tbody = document.getElementById('suspects-body');
+    if (!suspects.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="icon">🎭</div>No suspects found</td></tr>'; return; }
+    const badgeMap = { CLEARED: 'cleared', PERSON_OF_INTEREST: 'poi', CHARGED: 'charged' };
+    tbody.innerHTML = suspects.map(s => `
+        <tr>
+            <td>#${s.id}</td>
+            <td><strong>${esc(s.name)}</strong></td>
+            <td>${esc(s.description||'').substring(0,80)}${s.description && s.description.length > 80 ? '...' : ''}</td>
+            <td><span class="badge badge-${badgeMap[s.status]||''}">${s.status||'—'}</span></td>
+            <td class="actions-col">
+                <button class="btn btn-secondary btn-sm" onclick="editSuspect(${s.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntity('suspect',${s.id})">Del</button>
+            </td>
+        </tr>`).join('');
+}
+
+// EVIDENCE
+async function loadEvidence() {
+    try {
+        const data = await apiFetch('/api/evidence');
+        renderEvidence(data || []);
+    } catch(e) {
+        document.getElementById('evidence-body').innerHTML = '<tr><td colspan="6" class="empty-state">⚠️ Could not load evidence.</td></tr>';
+    }
+}
+
+function renderEvidence(items) {
+    const tbody = document.getElementById('evidence-body');
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">🔬</div>No evidence found</td></tr>'; return; }
+    tbody.innerHTML = items.map(e => `
+        <tr>
+            <td>#${e.id}</td>
+            <td>${esc(e.description||'').substring(0,60)}${e.description && e.description.length > 60 ? '...' : ''}</td>
+            <td>${esc(e.location||'—')}</td>
+            <td>${esc(e.type||'—')}</td>
+            <td>${e.caseEntity ? '#' + e.caseEntity.id + ' ' + esc(e.caseEntity.title||'') : '—'}</td>
+            <td class="actions-col">
+                <button class="btn btn-secondary btn-sm" onclick="editEvidence(${e.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntity('evidence',${e.id})">Del</button>
+            </td>
+        </tr>`).join('');
+}
+
+// DETECTIVES
+async function loadDetectives() {
+    try {
+        const data = await apiFetch('/api/detectives');
+        detectivesCache = data || [];
+        renderDetectives(detectivesCache);
+    } catch(e) {
+        document.getElementById('detectives-body').innerHTML = '<tr><td colspan="5" class="empty-state">⚠️ Could not load detectives.</td></tr>';
+    }
+}
+
+function renderDetectives(detectives) {
+    const tbody = document.getElementById('detectives-body');
+    if (!detectives.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="icon">🕵️</div>No detectives found</td></tr>'; return; }
+    tbody.innerHTML = detectives.map(d => `
+        <tr>
+            <td>#${d.id}</td>
+            <td><strong>${esc(d.name)}</strong></td>
+            <td>${esc(d.badgeNumber||'—')}</td>
+            <td>${esc(d.specialization||'—')}</td>
+            <td class="actions-col">
+                <button class="btn btn-secondary btn-sm" onclick="editDetective(${d.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntity('detective',${d.id})">Del</button>
+            </td>
+        </tr>`).join('');
+}
+
+// MODALS
+function openModal(entity, data = null) {
+    currentEntity = entity;
+    editingId = data ? data.id : null;
+    const content = document.getElementById('modal-content');
+    const detOpts = detectivesCache.map(d => `<option value="${d.id}" ${data && data.detective && data.detective.id === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('');
+    const caseOpts = casesCache.map(c => `<option value="${c.id}">${esc(c.title)}</option>`).join('');
+
+    let html = '';
+    if (entity === 'case') {
+        html = `<h3>${data ? 'Edit Case' : 'New Case'}</h3>
+        <div class="form-group"><label>Title *</label><input type="text" id="f-title" value="${esc(data?.title||'')}" placeholder="Case title"></div>
+        <div class="form-group"><label>Description</label><textarea id="f-desc">${esc(data?.description||'')}</textarea></div>
+        <div class="form-group"><label>Status</label><select id="f-status"><option value="OPEN" ${data?.status==='OPEN'?'selected':''}>OPEN</option><option value="PENDING" ${data?.status==='PENDING'?'selected':''}>PENDING</option><option value="CLOSED" ${data?.status==='CLOSED'?'selected':''}>CLOSED</option></select></div>
+        <div class="form-group"><label>Detective</label><select id="f-detective"><option value="">-- None --</option>${detOpts}</select></div>`;
+    } else if (entity === 'victim') {
+        html = `<h3>${data ? 'Edit Victim' : 'New Victim'}</h3>
+        <div class="form-group"><label>Name *</label><input type="text" id="f-name" value="${esc(data?.name||'')}" placeholder="Victim name"></div>
+        <div class="form-group"><label>Location</label><input type="text" id="f-location" value="${esc(data?.location||'')}" placeholder="Discovery location"></div>
+        <div class="form-group"><label>Discovery Description</label><textarea id="f-discovery">${esc(data?.discoveryDescription||'')}</textarea></div>
+        <div class="form-group"><label>Case</label><select id="f-case"><option value="">-- None --</option>${casesCache.map(c => `<option value="${c.id}" ${data?.caseEntity && data.caseEntity.id === c.id ? 'selected' : ''}>${esc(c.title)}</option>`).join('')}</select></div>`;
+    } else if (entity === 'suspect') {
+        html = `<h3>${data ? 'Edit Suspect' : 'New Suspect'}</h3>
+        <div class="form-group"><label>Name *</label><input type="text" id="f-name" value="${esc(data?.name||'')}" placeholder="Suspect name"></div>
+        <div class="form-group"><label>Description</label><textarea id="f-desc">${esc(data?.description||'')}</textarea></div>
+        <div class="form-group"><label>Status</label><select id="f-status"><option value="PERSON_OF_INTEREST" ${data?.status==='PERSON_OF_INTEREST'?'selected':''}>PERSON OF INTEREST</option><option value="CLEARED" ${data?.status==='CLEARED'?'selected':''}>CLEARED</option><option value="CHARGED" ${data?.status==='CHARGED'?'selected':''}>CHARGED</option></select></div>`;
+    } else if (entity === 'evidence') {
+        html = `<h3>${data ? 'Edit Evidence' : 'New Evidence'}</h3>
+        <div class="form-group"><label>Description *</label><textarea id="f-desc">${esc(data?.description||'')}</textarea></div>
+        <div class="form-group"><label>Location</label><input type="text" id="f-location" value="${esc(data?.location||'')}" placeholder="Evidence location"></div>
+        <div class="form-group"><label>Type</label><input type="text" id="f-type" value="${esc(data?.type||'')}" placeholder="e.g. Physical, Digital, Witness"></div>
+        <div class="form-group"><label>Case</label><select id="f-case"><option value="">-- None --</option>${caseOpts}</select></div>`;
+    } else if (entity === 'detective') {
+        html = `<h3>${data ? 'Edit Detective' : 'New Detective'}</h3>
+        <div class="form-group"><label>Name *</label><input type="text" id="f-name" value="${esc(data?.name||'')}" placeholder="Detective name"></div>
+        <div class="form-group"><label>Badge Number</label><input type="text" id="f-badge" value="${esc(data?.badgeNumber||'')}" placeholder="Badge number"></div>
+        <div class="form-group"><label>Specialization</label><input type="text" id="f-spec" value="${esc(data?.specialization||'')}" placeholder="e.g. Homicide, Forensics"></div>`;
+    }
+    html += `<div class="form-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveEntity()">Save</button></div>`;
+    content.innerHTML = html;
+    document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+    editingId = null;
+    currentEntity = null;
+}
+
+function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+async function saveEntity() {
+    let payload = {};
+    try {
+        if (currentEntity === 'case') {
+            const title = document.getElementById('f-title').value.trim();
+            if (!title) { alert('Title is required'); return; }
+            payload = { title, description: document.getElementById('f-desc').value, status: document.getElementById('f-status').value };
+            const detId = document.getElementById('f-detective').value;
+            if (detId) payload.detective = { id: parseInt(detId) };
+        } else if (currentEntity === 'victim') {
+            const name = document.getElementById('f-name').value.trim();
+            if (!name) { alert('Name is required'); return; }
+            payload = { name, location: document.getElementById('f-location').value, discoveryDescription: document.getElementById('f-discovery').value };
+            const caseId = document.getElementById('f-case').value;
+            if (caseId) payload.caseEntity = { id: parseInt(caseId) };
+        } else if (currentEntity === 'suspect') {
+            const name = document.getElementById('f-name').value.trim();
+            if (!name) { alert('Name is required'); return; }
+            payload = { name, description: document.getElementById('f-desc').value, status: document.getElementById('f-status').value };
+        } else if (currentEntity === 'evidence') {
+            const desc = document.getElementById('f-desc').value.trim();
+            if (!desc) { alert('Description is required'); return; }
+            payload = { description: desc, location: document.getElementById('f-location').value, type: document.getElementById('f-type').value };
+            const caseId = document.getElementById('f-case').value;
+            if (caseId) payload.caseEntity = { id: parseInt(caseId) };
+        } else if (currentEntity === 'detective') {
+            const name = document.getElementById('f-name').value.trim();
+            if (!name) { alert('Name is required'); return; }
+            payload = { name, badgeNumber: document.getElementById('f-badge').value, specialization: document.getElementById('f-spec').value };
+        }
+
+        const entityPathMap = { case: 'cases', victim: 'victims', suspect: 'suspects', evidence: 'evidence', detective: 'detectives' };
+        const path = '/api/' + entityPathMap[currentEntity];
+        const method = editingId ? 'PUT' : 'POST';
+        const url = editingId ? path + '/' + editingId : path;
+        await apiFetch(url, { method, body: JSON.stringify(payload) });
+        closeModal();
+        loadAllData();
+    } catch(e) {
+        alert('Error saving: ' + e.message);
+    }
+}
+
+async function deleteEntity(entity, id) {
+    if (!confirm('Delete this ' + entity + '?')) return;
+    const entityPathMap = { case: 'cases', victim: 'victims', suspect: 'suspects', evidence: 'evidence', detective: 'detectives' };
+    try {
+        await apiFetch('/api/' + entityPathMap[entity] + '/' + id, { method: 'DELETE' });
+        loadAllData();
+    } catch(e) {
+        alert('Error deleting: ' + e.message);
+    }
+}
+
+async function editCase(id) {
+    const data = await apiFetch('/api/cases/' + id);
+    openModal('case', data);
+}
+async function editVictim(id) {
+    const data = await apiFetch('/api/victims/' + id);
+    openModal('victim', data);
+}
+async function editSuspect(id) {
+    const data = await apiFetch('/api/suspects/' + id);
+    openModal('suspect', data);
+}
+async function editEvidence(id) {
+    const data = await apiFetch('/api/evidence/' + id);
+    openModal('evidence', data);
+}
+async function editDetective(id) {
+    const data = await apiFetch('/api/detectives/' + id);
+    openModal('detective', data);
+}
+
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
