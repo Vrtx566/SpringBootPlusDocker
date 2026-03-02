@@ -22,7 +22,9 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak-init/investigation-realm.json:/opt/keycloak/data/import/investigation-realm.json
     ports:
       - "8180:8080"
     depends_on:
@@ -36,6 +38,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/investigation
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/investigation/protocol/openid-connect/certs
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/investigation
     ports:
       - "8080:8080"

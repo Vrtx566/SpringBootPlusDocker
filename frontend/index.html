@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Las Cariñosas - Crime Investigation System</title>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@23.0.7/dist/keycloak.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
@@ -96,10 +97,10 @@
                     <label>Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter password" value="password">
                 </div>
-                <button class="btn btn-primary" onclick="mockLogin()">Sign In</button>
+                <button class="btn btn-primary" onclick="mockLogin()">Sign In with Keycloak</button>
                 <p style="margin-top:1rem; font-size:0.8rem; color:#666;">
-                    Demo: Use any credentials to access the system.<br>
-                    Keycloak integration active at port 8180.
+                    You will be redirected to Keycloak for authentication.<br>
+                    Default admin: admin / admin
                 </p>
             </div>
         </div>
@@ -196,7 +197,10 @@
 </div>
 
 <script>
-// State
+console.log('=== SCRIPT LOADED ===');
+
+// Keycloak instance
+let keycloak = null;
 let authToken = null;
 let currentUser = null;
 let editingId = null;
@@ -204,17 +208,66 @@ let currentEntity = null;
 let casesCache = [];
 let detectivesCache = [];
 
-// Init
+console.log('Variables initialized');
+
+// Init Keycloak
 window.onload = function() {
-    const saved = localStorage.getItem('inv_token');
-    const savedUser = localStorage.getItem('inv_user');
-    if (saved && savedUser) {
-        authToken = saved;
-        currentUser = savedUser;
-        showApp();
-    } else {
+    console.log('===== WINDOW.ONLOAD FIRED =====');
+    console.log('Initializing Keycloak...');
+
+    // Verificar si Keycloak está disponible
+    if (typeof Keycloak === 'undefined') {
+        console.error('❌ Keycloak library not loaded!');
+        console.error('typeof Keycloak:', typeof Keycloak);
         showLoginPage();
+        return;
     }
+
+    console.log('✅ Keycloak library loaded');
+
+    keycloak = new Keycloak({
+        url: 'http://localhost:8180',
+        realm: 'investigation',
+        clientId: 'investigation-frontend'
+    });
+
+    console.log('Keycloak instance created, initializing...');
+
+    keycloak.init({
+        onLoad: 'login-required',
+        checkLoginIframe: false,
+        pkceMethod: 'S256'
+    }).then(authenticated => {
+        console.log('✅ Keycloak init completed. Authenticated:', authenticated);
+        if (authenticated) {
+            authToken = keycloak.token;
+            currentUser = keycloak.tokenParsed?.preferred_username || 'User';
+            console.log('✅ Authenticated as:', currentUser);
+            console.log('Token (first 50 chars):', authToken?.substring(0, 50) + '...');
+            showApp();
+
+            // Refrescar token automáticamente
+            setInterval(() => {
+                keycloak.updateToken(70).then(refreshed => {
+                    if (refreshed) {
+                        authToken = keycloak.token;
+                        console.log('Token refreshed');
+                    }
+                }).catch(() => {
+                    console.error('Failed to refresh token');
+                    logout();
+                });
+            }, 60000); // cada minuto
+        } else {
+            console.warn('❌ Not authenticated, redirecting to login...');
+            keycloak.login();
+        }
+    }).catch(err => {
+        console.error('❌ Keycloak init failed:', err);
+        console.error('Error details:', err.message || err);
+        console.error('Stack:', err.stack);
+        showLoginPage();
+    });
 };
 
 function showLoginPage() {
@@ -225,42 +278,44 @@ function showLoginPage() {
 }
 
 function showApp() {
+    if (!keycloak || !keycloak.authenticated || !authToken) {
+        console.error('Attempted to show app without valid authentication!');
+        showLoginPage();
+        return;
+    }
+
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('appSection').style.display = 'block';
     document.getElementById('authBtn').textContent = 'Logout';
     document.getElementById('userInfo').textContent = '👤 ' + currentUser;
+
+    console.log('App shown, loading data...');
     loadAllData();
 }
 
 function toggleAuth() {
-    if (authToken) {
+    if (keycloak && keycloak.authenticated) {
         logout();
     } else {
-        showLoginPage();
+        keycloak.login();
     }
 }
 
 function mockLogin() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-    if (!username || !password) {
-        showLoginAlert('Please enter username and password', 'error');
-        return;
+    // Redirigir a Keycloak
+    if (keycloak) {
+        keycloak.login();
     }
-    // Mock token for demo
-    authToken = 'mock-token-' + Date.now();
-    currentUser = username;
-    localStorage.setItem('inv_token', authToken);
-    localStorage.setItem('inv_user', currentUser);
-    showApp();
 }
 
 function logout() {
+    if (keycloak) {
+        keycloak.logout({
+            redirectUri: window.location.origin
+        });
+    }
     authToken = null;
     currentUser = null;
-    localStorage.removeItem('inv_token');
-    localStorage.removeItem('inv_user');
-    showLoginPage();
 }
 
 function showLoginAlert(msg, type) {
@@ -280,7 +335,7 @@ function showTab(tab, btn) {
 // API
 function apiHeaders() {
     const h = { 'Content-Type': 'application/json' };
-    if (authToken && !authToken.startsWith('mock-')) {
+    if (authToken) {
         h['Authorization'] = 'Bearer ' + authToken;
     }
     return h;
@@ -288,11 +343,27 @@ function apiHeaders() {
 
 async function apiFetch(url, options = {}) {
     try {
+        // Actualizar token antes de cada petición
+        if (keycloak && keycloak.authenticated) {
+            await keycloak.updateToken(30);
+            authToken = keycloak.token;
+            console.log('Token updated for request:', url);
+        } else {
+            console.warn('No Keycloak authentication for request:', url);
+        }
+
         options.headers = { ...apiHeaders(), ...(options.headers || {}) };
+
+        // Log para debug
+        console.log('Making request to:', url);
+        console.log('With token:', authToken ? 'YES (length: ' + authToken.length + ')' : 'NO');
+        console.log('Headers:', options.headers);
+
         const res = await fetch(url, options);
         if (res.status === 204) return null;
         if (!res.ok) {
             const text = await res.text();
+            console.error('API Error Response:', text);
             throw new Error('API Error ' + res.status + ': ' + text);
         }
         return await res.json();
