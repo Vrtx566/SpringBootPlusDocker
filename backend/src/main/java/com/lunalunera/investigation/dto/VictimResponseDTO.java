@@ -1,16 +1,11 @@
 package com.lunalunera.investigation.dto;
 
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class VictimResponseDTO {
-    private Long id;
-    private String name;
-    private String location;
-    private String discoveryDescription;
-    private Long caseId;
+public record VictimResponseDTO(
+    Long id,
+    String name,
+    String location,
+    String discoveryDescription,
+    Long caseId
+) {
 }
 

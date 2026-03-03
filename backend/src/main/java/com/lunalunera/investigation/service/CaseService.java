@@ -32,12 +32,12 @@ public class CaseService {
 
     public CaseResponseDTO create(CaseCreateDTO dto) {
         Case caseEntity = new Case();
-        caseEntity.setTitle(dto.getTitle());
-        caseEntity.setDescription(dto.getDescription());
-        caseEntity.setStatus(dto.getStatus());
+        caseEntity.setTitle(dto.title());
+        caseEntity.setDescription(dto.description());
+        caseEntity.setStatus(dto.status());
 
-        if (dto.getDetectiveId() != null) {
-            Detective detective = detectiveRepository.findById(dto.getDetectiveId()).orElse(null);
+        if (dto.detectiveId() != null) {
+            Detective detective = detectiveRepository.findById(dto.detectiveId()).orElse(null);
             caseEntity.setDetective(detective);
         }
 
@@ -49,12 +49,12 @@ public class CaseService {
         Optional<Case> existingCase = caseRepository.findById(id);
         if (existingCase.isPresent()) {
             Case caseEntity = existingCase.get();
-            caseEntity.setTitle(dto.getTitle());
-            caseEntity.setDescription(dto.getDescription());
-            caseEntity.setStatus(dto.getStatus());
+            caseEntity.setTitle(dto.title());
+            caseEntity.setDescription(dto.description());
+            caseEntity.setStatus(dto.status());
 
-            if (dto.getDetectiveId() != null) {
-                Detective detective = detectiveRepository.findById(dto.getDetectiveId()).orElse(null);
+            if (dto.detectiveId() != null) {
+                Detective detective = detectiveRepository.findById(dto.detectiveId()).orElse(null);
                 caseEntity.setDetective(detective);
             }
 
@@ -71,21 +71,21 @@ public class CaseService {
     private CaseResponseDTO convertToResponseDTO(Case caseEntity) {
         DetectiveResponseDTO detectiveDTO = null;
         if (caseEntity.getDetective() != null) {
-            detectiveDTO = DetectiveResponseDTO.builder()
-                    .id(caseEntity.getDetective().getId())
-                    .name(caseEntity.getDetective().getName())
-                    .badgeNumber(caseEntity.getDetective().getBadgeNumber())
-                    .specialization(caseEntity.getDetective().getSpecialization())
-                    .build();
+            detectiveDTO = new DetectiveResponseDTO(
+                    caseEntity.getDetective().getId(),
+                    caseEntity.getDetective().getName(),
+                    caseEntity.getDetective().getBadgeNumber(),
+                    caseEntity.getDetective().getSpecialization()
+            );
         }
 
-        return CaseResponseDTO.builder()
-                .id(caseEntity.getId())
-                .title(caseEntity.getTitle())
-                .description(caseEntity.getDescription())
-                .status(caseEntity.getStatus())
-                .createdAt(caseEntity.getCreatedAt())
-                .detective(detectiveDTO)
-                .build();
+        return new CaseResponseDTO(
+                caseEntity.getId(),
+                caseEntity.getTitle(),
+                caseEntity.getDescription(),
+                caseEntity.getStatus(),
+                caseEntity.getCreatedAt(),
+                detectiveDTO
+        );
     }
 }

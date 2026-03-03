@@ -28,9 +28,9 @@ public class SuspectService {
 
     public SuspectResponseDTO create(SuspectCreateDTO dto) {
         Suspect suspect = new Suspect();
-        suspect.setName(dto.getName());
-        suspect.setDescription(dto.getDescription());
-        suspect.setStatus(dto.getStatus());
+        suspect.setName(dto.name());
+        suspect.setDescription(dto.description());
+        suspect.setStatus(dto.status());
 
         Suspect saved = suspectRepository.save(suspect);
         return convertToResponseDTO(saved);
@@ -40,9 +40,9 @@ public class SuspectService {
         Optional<Suspect> existingSuspect = suspectRepository.findById(id);
         if (existingSuspect.isPresent()) {
             Suspect suspect = existingSuspect.get();
-            suspect.setName(dto.getName());
-            suspect.setDescription(dto.getDescription());
-            suspect.setStatus(dto.getStatus());
+            suspect.setName(dto.name());
+            suspect.setDescription(dto.description());
+            suspect.setStatus(dto.status());
 
             Suspect updated = suspectRepository.save(suspect);
             return convertToResponseDTO(updated);
@@ -55,11 +55,11 @@ public class SuspectService {
     }
 
     private SuspectResponseDTO convertToResponseDTO(Suspect suspect) {
-        return SuspectResponseDTO.builder()
-                .id(suspect.getId())
-                .name(suspect.getName())
-                .description(suspect.getDescription())
-                .status(suspect.getStatus())
-                .build();
+        return new SuspectResponseDTO(
+                suspect.getId(),
+                suspect.getName(),
+                suspect.getDescription(),
+                suspect.getStatus()
+        );
     }
 }

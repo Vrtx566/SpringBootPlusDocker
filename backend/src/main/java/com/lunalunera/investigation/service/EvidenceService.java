@@ -31,12 +31,12 @@ public class EvidenceService {
 
     public EvidenceResponseDTO create(EvidenceCreateDTO dto) {
         Evidence evidence = new Evidence();
-        evidence.setDescription(dto.getDescription());
-        evidence.setLocation(dto.getLocation());
-        evidence.setType(dto.getType());
+        evidence.setDescription(dto.description());
+        evidence.setLocation(dto.location());
+        evidence.setType(dto.type());
 
-        if (dto.getCaseId() != null) {
-            Case caseEntity = caseRepository.findById(dto.getCaseId()).orElse(null);
+        if (dto.caseId() != null) {
+            Case caseEntity = caseRepository.findById(dto.caseId()).orElse(null);
             evidence.setCaseEntity(caseEntity);
         }
 
@@ -48,12 +48,12 @@ public class EvidenceService {
         Optional<Evidence> existingEvidence = evidenceRepository.findById(id);
         if (existingEvidence.isPresent()) {
             Evidence evidence = existingEvidence.get();
-            evidence.setDescription(dto.getDescription());
-            evidence.setLocation(dto.getLocation());
-            evidence.setType(dto.getType());
+            evidence.setDescription(dto.description());
+            evidence.setLocation(dto.location());
+            evidence.setType(dto.type());
 
-            if (dto.getCaseId() != null) {
-                Case caseEntity = caseRepository.findById(dto.getCaseId()).orElse(null);
+            if (dto.caseId() != null) {
+                Case caseEntity = caseRepository.findById(dto.caseId()).orElse(null);
                 evidence.setCaseEntity(caseEntity);
             }
 
@@ -68,12 +68,12 @@ public class EvidenceService {
     }
 
     private EvidenceResponseDTO convertToResponseDTO(Evidence evidence) {
-        return EvidenceResponseDTO.builder()
-                .id(evidence.getId())
-                .description(evidence.getDescription())
-                .location(evidence.getLocation())
-                .type(evidence.getType())
-                .caseId(evidence.getCaseEntity() != null ? evidence.getCaseEntity().getId() : null)
-                .build();
+        return new EvidenceResponseDTO(
+                evidence.getId(),
+                evidence.getDescription(),
+                evidence.getLocation(),
+                evidence.getType(),
+                evidence.getCaseEntity() != null ? evidence.getCaseEntity().getId() : null
+        );
     }
 }

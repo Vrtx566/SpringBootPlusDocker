@@ -1,14 +1,9 @@
 package com.lunalunera.investigation.dto;
 
-import lombok.*;
-
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class DetectiveResponseDTO {
-    private Long id;
-    private String name;
-    private String badgeNumber;
-    private String specialization;
+public record DetectiveResponseDTO(
+    Long id,
+    String name,
+    String badgeNumber,
+    String specialization
+) {
 }

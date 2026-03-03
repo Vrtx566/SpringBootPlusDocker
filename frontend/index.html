@@ -623,13 +623,13 @@ async function saveEntity() {
             if (!title) { alert('Title is required'); return; }
             payload = { title, description: document.getElementById('f-desc').value, status: document.getElementById('f-status').value };
             const detId = document.getElementById('f-detective').value;
-            if (detId) payload.detective = { id: parseInt(detId) };
+            if (detId) payload.detectiveId = parseInt(detId);
         } else if (currentEntity === 'victim') {
             const name = document.getElementById('f-name').value.trim();
             if (!name) { alert('Name is required'); return; }
             payload = { name, location: document.getElementById('f-location').value, discoveryDescription: document.getElementById('f-discovery').value };
             const caseId = document.getElementById('f-case').value;
-            if (caseId) payload.caseEntity = { id: parseInt(caseId) };
+            if (caseId) payload.caseId = parseInt(caseId);
         } else if (currentEntity === 'suspect') {
             const name = document.getElementById('f-name').value.trim();
             if (!name) { alert('Name is required'); return; }
@@ -639,7 +639,7 @@ async function saveEntity() {
             if (!desc) { alert('Description is required'); return; }
             payload = { description: desc, location: document.getElementById('f-location').value, type: document.getElementById('f-type').value };
             const caseId = document.getElementById('f-case').value;
-            if (caseId) payload.caseEntity = { id: parseInt(caseId) };
+            if (caseId) payload.caseId = parseInt(caseId);
         } else if (currentEntity === 'detective') {
             const name = document.getElementById('f-name').value.trim();
             if (!name) { alert('Name is required'); return; }

@@ -28,9 +28,9 @@ public class DetectiveService {
 
     public DetectiveResponseDTO create(DetectiveCreateDTO dto) {
         Detective detective = new Detective();
-        detective.setName(dto.getName());
-        detective.setBadgeNumber(dto.getBadgeNumber());
-        detective.setSpecialization(dto.getSpecialization());
+        detective.setName(dto.name());
+        detective.setBadgeNumber(dto.badgeNumber());
+        detective.setSpecialization(dto.specialization());
 
         Detective saved = detectiveRepository.save(detective);
         return convertToResponseDTO(saved);
@@ -40,9 +40,9 @@ public class DetectiveService {
         Optional<Detective> existingDetective = detectiveRepository.findById(id);
         if (existingDetective.isPresent()) {
             Detective detective = existingDetective.get();
-            detective.setName(dto.getName());
-            detective.setBadgeNumber(dto.getBadgeNumber());
-            detective.setSpecialization(dto.getSpecialization());
+            detective.setName(dto.name());
+            detective.setBadgeNumber(dto.badgeNumber());
+            detective.setSpecialization(dto.specialization());
 
             Detective updated = detectiveRepository.save(detective);
             return convertToResponseDTO(updated);
@@ -55,11 +55,11 @@ public class DetectiveService {
     }
 
     private DetectiveResponseDTO convertToResponseDTO(Detective detective) {
-        return DetectiveResponseDTO.builder()
-                .id(detective.getId())
-                .name(detective.getName())
-                .badgeNumber(detective.getBadgeNumber())
-                .specialization(detective.getSpecialization())
-                .build();
+        return new DetectiveResponseDTO(
+                detective.getId(),
+                detective.getName(),
+                detective.getBadgeNumber(),
+                detective.getSpecialization()
+        );
     }
 }

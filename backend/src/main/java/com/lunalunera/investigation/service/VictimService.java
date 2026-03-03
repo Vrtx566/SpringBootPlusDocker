@@ -31,12 +31,12 @@ public class VictimService {
 
     public VictimResponseDTO create(VictimCreateDTO dto) {
         Victim victim = new Victim();
-        victim.setName(dto.getName());
-        victim.setLocation(dto.getLocation());
-        victim.setDiscoveryDescription(dto.getDiscoveryDescription());
+        victim.setName(dto.name());
+        victim.setLocation(dto.location());
+        victim.setDiscoveryDescription(dto.discoveryDescription());
 
-        if (dto.getCaseId() != null) {
-            Case caseEntity = caseRepository.findById(dto.getCaseId()).orElse(null);
+        if (dto.caseId() != null) {
+            Case caseEntity = caseRepository.findById(dto.caseId()).orElse(null);
             victim.setCaseEntity(caseEntity);
         }
 
@@ -48,12 +48,12 @@ public class VictimService {
         Optional<Victim> existingVictim = victimRepository.findById(id);
         if (existingVictim.isPresent()) {
             Victim victim = existingVictim.get();
-            victim.setName(dto.getName());
-            victim.setLocation(dto.getLocation());
-            victim.setDiscoveryDescription(dto.getDiscoveryDescription());
+            victim.setName(dto.name());
+            victim.setLocation(dto.location());
+            victim.setDiscoveryDescription(dto.discoveryDescription());
 
-            if (dto.getCaseId() != null) {
-                Case caseEntity = caseRepository.findById(dto.getCaseId()).orElse(null);
+            if (dto.caseId() != null) {
+                Case caseEntity = caseRepository.findById(dto.caseId()).orElse(null);
                 victim.setCaseEntity(caseEntity);
             }
 
@@ -68,12 +68,12 @@ public class VictimService {
     }
 
     private VictimResponseDTO convertToResponseDTO(Victim victim) {
-        return VictimResponseDTO.builder()
-                .id(victim.getId())
-                .name(victim.getName())
-                .location(victim.getLocation())
-                .discoveryDescription(victim.getDiscoveryDescription())
-                .caseId(victim.getCaseEntity() != null ? victim.getCaseEntity().getId() : null)
-                .build();
+        return new VictimResponseDTO(
+                victim.getId(),
+                victim.getName(),
+                victim.getLocation(),
+                victim.getDiscoveryDescription(),
+                victim.getCaseEntity() != null ? victim.getCaseEntity().getId() : null
+        );
     }
 }
