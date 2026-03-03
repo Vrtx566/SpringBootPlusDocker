@@ -527,7 +527,7 @@ function renderEvidence(items) {
             <td>${esc(e.description||'').substring(0,60)}${e.description && e.description.length > 60 ? '...' : ''}</td>
             <td>${esc(e.location||'—')}</td>
             <td>${esc(e.type||'—')}</td>
-            <td>${e.caseEntity ? '#' + e.caseEntity.id + ' ' + esc(e.caseEntity.title||'') : '—'}</td>
+            <td>${e.caseId ? '#' + e.caseId : '—'}</td>
             <td class="actions-col">
                 <button class="btn btn-secondary btn-sm" onclick="editEvidence(${e.id})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteEntity('evidence',${e.id})">Del</button>

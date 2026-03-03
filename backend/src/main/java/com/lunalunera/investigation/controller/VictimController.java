@@ -1,8 +1,11 @@
 package com.lunalunera.investigation.controller;
 
-import com.lunalunera.investigation.model.Victim;
+import com.lunalunera.investigation.dto.VictimCreateDTO;
+import com.lunalunera.investigation.dto.VictimResponseDTO;
+import com.lunalunera.investigation.dto.VictimUpdateDTO;
 import com.lunalunera.investigation.service.VictimService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -14,29 +17,37 @@ public class VictimController {
     private final VictimService victimService;
 
     @GetMapping
-    public List<Victim> getAll() { return victimService.findAll(); }
+    public List<VictimResponseDTO> getAll() {
+        return victimService.findAll();
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Victim> getById(@PathVariable Long id) {
+    public ResponseEntity<VictimResponseDTO> getById(@PathVariable Long id) {
         return victimService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Victim create(@RequestBody Victim v) { return victimService.save(v); }
+    public ResponseEntity<VictimResponseDTO> create(@RequestBody VictimCreateDTO dto) {
+        VictimResponseDTO created = victimService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Victim> update(@PathVariable Long id, @RequestBody Victim v) {
-        return victimService.findById(id).map(existing -> {
-            v.setId(id);
-            return ResponseEntity.ok(victimService.save(v));
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<VictimResponseDTO> update(@PathVariable Long id, @RequestBody VictimUpdateDTO dto) {
+        VictimResponseDTO updated = victimService.update(id, dto);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (victimService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
+        if (victimService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         victimService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
