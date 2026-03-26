@@ -1,0 +1,91 @@
+package com.lunalunera.investigation.cases.service;
+
+import com.lunalunera.investigation.cases.dto.CaseCreateDTO;
+import com.lunalunera.investigation.cases.dto.CaseResponseDTO;
+import com.lunalunera.investigation.cases.dto.CaseUpdateDTO;
+import com.lunalunera.investigation.cases.model.Case;
+import com.lunalunera.investigation.cases.repository.CaseRepository;
+import com.lunalunera.investigation.detective.dto.DetectiveResponseDTO;
+import com.lunalunera.investigation.detective.model.Detective;
+import com.lunalunera.investigation.detective.repository.DetectiveRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CaseService {
+    private final CaseRepository caseRepository;
+    private final DetectiveRepository detectiveRepository;
+
+    public List<CaseResponseDTO> findAll() {
+        return caseRepository.findAll().stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Optional<CaseResponseDTO> findById(Long id) {
+        return caseRepository.findById(id).map(this::convertToResponseDTO);
+    }
+
+    public CaseResponseDTO create(CaseCreateDTO dto) {
+        Case caseEntity = new Case();
+        caseEntity.setTitle(dto.title());
+        caseEntity.setDescription(dto.description());
+        caseEntity.setStatus(dto.status());
+
+        if (dto.detectiveId() != null) {
+            Detective detective = detectiveRepository.findById(dto.detectiveId()).orElse(null);
+            caseEntity.setDetective(detective);
+        }
+
+        Case saved = caseRepository.save(caseEntity);
+        return convertToResponseDTO(saved);
+    }
+
+    public CaseResponseDTO update(Long id, CaseUpdateDTO dto) {
+        Optional<Case> existingCase = caseRepository.findById(id);
+        if (existingCase.isPresent()) {
+            Case caseEntity = existingCase.get();
+            caseEntity.setTitle(dto.title());
+            caseEntity.setDescription(dto.description());
+            caseEntity.setStatus(dto.status());
+
+            if (dto.detectiveId() != null) {
+                Detective detective = detectiveRepository.findById(dto.detectiveId()).orElse(null);
+                caseEntity.setDetective(detective);
+            }
+
+            Case updated = caseRepository.save(caseEntity);
+            return convertToResponseDTO(updated);
+        }
+        return null;
+    }
+
+    public void deleteById(Long id) {
+        caseRepository.deleteById(id);
+    }
+
+    private CaseResponseDTO convertToResponseDTO(Case caseEntity) {
+        DetectiveResponseDTO detectiveDTO = null;
+        if (caseEntity.getDetective() != null) {
+            detectiveDTO = new DetectiveResponseDTO(
+                    caseEntity.getDetective().getId(),
+                    caseEntity.getDetective().getName(),
+                    caseEntity.getDetective().getBadgeNumber(),
+                    caseEntity.getDetective().getSpecialization()
+            );
+        }
+
+        return new CaseResponseDTO(
+                caseEntity.getId(),
+                caseEntity.getTitle(),
+                caseEntity.getDescription(),
+                caseEntity.getStatus(),
+                caseEntity.getCreatedAt(),
+                detectiveDTO
+        );
+    }
+}
